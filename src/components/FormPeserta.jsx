@@ -1,12 +1,34 @@
-import { useState } from "react";
-const FormPeserta = ({ onSimpan, onCancel }) => {
+import { useState, useEffect } from "react";
+const FormPeserta = ({ onSimpan, onCancel, pesertaEdit }) => {
   const [nama, setNama] = useState("");
   const [jurusan, setJurusan] = useState("");
+  const [error, setError] = useState("");
+
+  //useEffect :  hasil request dari server menghasilkan sebuah data, dirender cuma 1 kali
+  // useEffect(() => {
+  // user
+  // }, [user])
+
+  useEffect(() => {
+    if (pesertaEdit) {
+      // edit
+      setNama(pesertaEdit.nama);
+      setJurusan(pesertaEdit.jurusan);
+    } else {
+      // tambah
+      setNama("");
+      setJurusan("");
+    }
+  }, [pesertaEdit]);
 
   const handleSimpan = (e) => {
     e.preventDefault();
+    if (!nama.trim() || !jurusan.trim()) {
+      setError("Mohon isi nama dan jurusan");
+      return;
+    }
     onSimpan({
-      id: Date.now(),
+      id: pesertaEdit ? pesertaEdit.id : Date.now(),
       nama,
       jurusan,
     });
