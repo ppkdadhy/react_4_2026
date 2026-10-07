@@ -1,6 +1,7 @@
-import { Card, Container, Row, Col } from "react-bootstrap";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } 
+from "../../components/ui/card";
 
-const Dashboard = () => {
+const UserPage = () => {
   return (
     <Container>
       <div className="navbar">
