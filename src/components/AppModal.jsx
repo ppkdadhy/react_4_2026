@@ -7,7 +7,6 @@ const AppModal = ({ show, onClose, onSubmit, submitLabel = "Save", cancelLabel =
       <DialogContent className="sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>This action cannot be undone. This will permanently delete your account and remove your data from our servers.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit}>
