@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 const AppModal = ({ show, onClose, onSubmit, submitLabel = "Save", cancelLabel = "Cancel", isLoading = false, showFooter = true, children, title }) => {
   return (
-    <Dialog open={show} openChange={onClose}>
+    <Dialog open={show} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
