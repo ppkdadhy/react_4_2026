@@ -1,13 +1,19 @@
-import { Home, Inbox, Calendar, Search, Settings, User2, ChevronUp } from "lucide-react";
+import { Home, Inbox, Calendar, Settings, User2, Users, ChevronUp, LogOut } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+const handleLogout = () => {
+  // Jalankan fungsi logout Anda (misal: clear token, signOut(), atau redirect)
 
+  localStorage.removeItem("token");
+  window.location.href = "/login";
+};
 // Menu navigasi utama
 const items = [
   { title: "Home", url: "#", icon: Home },
   { title: "Inbox", url: "#", icon: Inbox },
   { title: "Calendar", url: "#", icon: Calendar },
-  { title: "Search", url: "#", icon: Search },
+  { title: "User", url: "/user", icon: Users },
   { title: "Settings", url: "#", icon: Settings },
   { title: "Logout", url: "#", icon: Settings },
 ];
@@ -34,7 +40,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title} render={<a href={item.url} />}>
+                  <SidebarMenuButton tooltip={item.title}>
                     <item.icon />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
@@ -49,11 +55,21 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="John Doe">
-              <User2 />
-              <span className="font-medium">John Doe</span>
-              <ChevronUp className="ml-auto" />
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <User2 />
+                  <span className="font-medium">John Doe</span>
+                  <ChevronUp className="ml-auto" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
