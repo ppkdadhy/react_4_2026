@@ -5,33 +5,49 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import AppModal from "../../components/AppModal";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import api from "@/services/api";
 
 const ProductPage = () => {
   const _initForm = {
     id: null,
+    category_id: "",
     name: "",
-    email: "",
-    password: "",
+    price: "",
+    stock: "",
+    description: "",
     is_active: 1,
   };
 
   const [showModal, setShowModal] = useState(false);
-  const [users, setUsers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState(_initForm);
   const [isEdit, setIsEdit] = useState(false);
-  const fetchUser = async () => {
+
+  const fetchProducts = async () => {
     try {
       // get All Users
-      const response = await api.get("/user");
-      setUsers(response.data);
+      const response = await api.get("/product");
+      setProducts(response.data);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get("/category");
+      setCategories(response.data);
     } catch (error) {
       console.log(error.message);
     }
   };
 
   useEffect(() => {
-    fetchUser();
+    fetchProducts();
+    fetchCategories();
   }, []);
 
   const handleOpenModal = () => {
@@ -63,30 +79,28 @@ const ProductPage = () => {
     try {
       const payload = {
         name: formData.name,
-        email: formData.email,
-        password: formData.password,
+        category_id: formData.category_id,
+        price: formData.price,
+        description: formData.description,
+        stock: formData.stock,
         is_active: parseInt(formData.is_active),
       };
+      console.log(payload);
       if (isEdit) {
         // update data
-        await api.put(`/user/${formData.id}`, payload);
-        // setUsers(users.map((user) => (user.id === formData.id ? formData : user)));
+        await api.put(`/product/${formData.id}`, payload);
       } else {
         // insert data
-        await api.post("/user", payload);
-        // const newUser = {
-        //   ...formData,
-        //   id: Date.now(),
-        // };
-
-        // setUsers([...users, newUser]);
+        await api.post("/product", payload);
       }
       setFormData(_initForm);
+      await fetchProducts();
     } catch (error) {
       const errMsg = error.message;
       console.log(errMsg);
     } finally {
-      fetchUser();
+      // gagal/berhasil terseksuui
+
       setShowModal(false);
     }
     // jika edit data
@@ -96,8 +110,8 @@ const ProductPage = () => {
     const confirmation = window.confirm("Are you sure want to delete this data?");
     if (confirmation) {
       // delete
-      await api.delete(`/user/${id}`);
-      fetchUser();
+      await api.delete(`/product/${id}`);
+      fetchProducts();
       // setUsers(users.filter((u) => u.id !== id));
     }
     // filter: users
@@ -110,12 +124,12 @@ const ProductPage = () => {
           <div>
             <CardTitle className="text-xl font-bold">Data User</CardTitle>
           </div>
-          <Button onClick={handleOpenModal}>Create New User</Button>
+          <Button onClick={handleOpenModal}>Create New Product</Button>
         </CardHeader>
         <CardContent className="p-0">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <h4 className="mb-0 fw-bold">Data User</h4>
+              <h4 className="mb-0 fw-bold">Data Product</h4>
             </div>
           </div>
           <table className="w-full text-left text-sm">
@@ -123,26 +137,30 @@ const ProductPage = () => {
               <tr>
                 <th className="px-6 py-3 font-medium">#</th>
                 <th className="px-6 py-3 font-medium">Name</th>
-                <th className="px-6 py-3 font-medium">Email</th>
+                <th className="px-6 py-3 font-medium">Category</th>
+                <th className="px-6 py-3 font-medium">Price</th>
+                <th className="px-6 py-3 font-medium">Stock</th>
                 <th className="px-6 py-3 font-medium">Status</th>
                 <th className="px-6 py-3 font-medium">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {users.length > 0 ? (
-                users.map((user, index) => (
+              {products.length > 0 ? (
+                products.map((row, index) => (
                   <tr key={index} className="hover:bg-muted/50 transition-colors">
                     <td className="px-4 py-6 whitespace-nowrap">{index + 1}</td>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
+                    <td>{row.name}</td>
+                    <td>{row.category_name}</td>
+                    <td>{row.price}</td>
+                    <td>{row.stock}</td>
                     <td>
-                      <span className={`border rounded-sm p-2 ${user.is_active === 1 ? "bg-green-600" : "bg-red-600"}   text-white`}>{user.is_active === 1 ? "Active" : "In-Active"}</span>
+                      <span className={`border rounded-sm p-2 ${row.is_active === 1 ? "bg-green-600" : "bg-red-600"}   text-white`}>{row.is_active === 1 ? "Active" : "In-Active"}</span>
                     </td>
                     <td className="px-4 py-6 text-right whitespace-nowrap">
-                      <Button onClick={() => handleEditModal(user)} size="sm" className="me-2 bg-green-600">
+                      <Button onClick={() => handleEditModal(row)} size="sm" className="me-2 bg-green-600">
                         Edit
                       </Button>
-                      <Button onClick={() => handleDelete(user.id)} variant="destructive" size="sm" className="me-2">
+                      <Button onClick={() => handleDelete(row.id)} variant="destructive" size="sm" className="me-2">
                         Delete
                       </Button>
                     </td>
@@ -151,7 +169,7 @@ const ProductPage = () => {
               ) : (
                 <tr>
                   <td colSpan={5} className="text-center py-4 text-muted">
-                    Belum ada data user
+                    Product not found
                   </td>
                 </tr>
               )}
@@ -160,50 +178,40 @@ const ProductPage = () => {
         </CardContent>
       </Card>
 
-      {/* <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create New User</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control type="text" name="name" placeholder="Enter your name" required value={formData.name} onChange={handleChange}></Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control value={formData.email} onChange={handleChange} type="email" name="email" placeholder="Enter your email" required></Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Password</Form.Label>
-              <Form.Control value={formData.password} onChange={handleChange} type="password" name="password" placeholder="Enter your passwod" required></Form.Control>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
-          <Button type="submit" variant="primary" onClick={handleSubmit}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal> */}
-
       <AppModal show={showModal} onClose={handleCloseModal} title={isEdit ? "Edit User" : "Create New User"} onSubmit={handleSubmit} submitLabel={isEdit ? "Save Change" : "Save"}>
         <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <Select value={formData.category_id} onValueChange={(val) => setFormData({ ...formData, category_id: val })} required>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select One.." />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category, index) => (
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label>Name</Label>
             <Input id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter your name" />
           </div>
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required placeholder="Enter your email" />
+            <Label>Price</Label>
+            <Input type="number" id="price" name="price" value={formData.price} onChange={handleChange} required placeholder="Enter your email" />
           </div>
           <div className="space-y-2">
-            <Label>Password</Label>
-            <Input type="password" name="password" value={formData.password} onChange={handleChange} required={isEdit ? false : true} placeholder="Enter your password" />
+            <Label>Stock</Label>
+            <Input type="number" id="stock" name="stock" value={formData.stock} onChange={handleChange} placeholder="Enter your stock" />
           </div>
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Input type="text" id="description" name="description" value={formData.description} onChange={handleChange} placeholder="Enter  description product" />
+          </div>
+
           {isEdit ? (
             <div className="space-y-2">
               <Label>Activation</Label>

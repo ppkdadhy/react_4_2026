@@ -1,4 +1,4 @@
-import { Home, Inbox, Calendar, Settings, User2, Users, ChevronUp, LogOut } from "lucide-react";
+import { Home, FileArchive, File, Settings, User2, Users, ChevronUp, LogOut } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -11,8 +11,8 @@ const handleLogout = () => {
 // Menu navigasi utama
 const items = [
   { title: "Home", url: "#", icon: Home },
-  { title: "Inbox", url: "#", icon: Inbox },
-  { title: "Calendar", url: "#", icon: Calendar },
+  { title: "Product", url: "/product", icon: FileArchive },
+  { title: "Category", url: "/category", icon: File },
   { title: "User", url: "/user", icon: Users },
   { title: "Settings", url: "#", icon: Settings },
   { title: "Logout", url: "#", icon: Settings },

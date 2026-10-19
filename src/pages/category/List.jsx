@@ -62,30 +62,21 @@ const CategoryPage = () => {
     try {
       const payload = {
         name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        is_active: parseInt(formData.is_active),
       };
       if (isEdit) {
         // update data
-        await api.put(`/user/${formData.id}`, payload);
+        await api.put(`/category/${formData.id}`, payload);
         // setUsers(users.map((user) => (user.id === formData.id ? formData : user)));
       } else {
         // insert data
-        await api.post("/user", payload);
-        // const newUser = {
-        //   ...formData,
-        //   id: Date.now(),
-        // };
-
-        // setUsers([...users, newUser]);
+        await api.post("/category", payload);
       }
       setFormData(_initForm);
     } catch (error) {
       const errMsg = error.message;
       console.log(errMsg);
     } finally {
-      fetchUser();
+      await fetchCategories();
       setShowModal(false);
     }
     // jika edit data
@@ -95,11 +86,9 @@ const CategoryPage = () => {
     const confirmation = window.confirm("Are you sure want to delete this data?");
     if (confirmation) {
       // delete
-      await api.delete(`/user/${id}`);
-      fetchUser();
-      // setUsers(users.filter((u) => u.id !== id));
+      await api.delete(`/category/${id}`);
+      fetchCategories();
     }
-    // filter: users
   };
 
   return (
@@ -148,91 +137,13 @@ const CategoryPage = () => {
         </CardContent>
       </Card>
 
-      {/* <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create New User</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control type="text" name="name" placeholder="Enter your name" required value={formData.name} onChange={handleChange}></Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control value={formData.email} onChange={handleChange} type="email" name="email" placeholder="Enter your email" required></Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Password</Form.Label>
-              <Form.Control value={formData.password} onChange={handleChange} type="password" name="password" placeholder="Enter your passwod" required></Form.Control>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
-          <Button type="submit" variant="primary" onClick={handleSubmit}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal> */}
-
-      <AppModal show={showModal} onClose={handleCloseModal} title={isEdit ? "Edit User" : "Create New User"} onSubmit={handleSubmit} submitLabel={isEdit ? "Save Change" : "Save"}>
+      <AppModal show={showModal} onClose={handleCloseModal} title={isEdit ? "Edit Category" : "Create New Category"} onSubmit={handleSubmit} submitLabel={isEdit ? "Save Change" : "Save"}>
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Name</Label>
             <Input id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter your name" />
           </div>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required placeholder="Enter your email" />
-          </div>
-          <div className="space-y-2">
-            <Label>Password</Label>
-            <Input type="password" name="password" value={formData.password} onChange={handleChange} required={isEdit ? false : true} placeholder="Enter your password" />
-          </div>
-          {isEdit ? (
-            <div className="space-y-2">
-              <Label>Activation</Label>
-              <RadioGroup value={String(formData.is_active)} onValueChange={(val) => setFormData({ ...formData, is_active: parseInt(val) })} className="w-fit flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="1" id="active" />
-                  <Label htmlFor="active">Active</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="0" id="inactive" />
-                  <Label htmlFor="inactive">In-Active</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          ) : (
-            ""
-          )}
         </div>
-        {/* <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>Name</Form.Label>
-            <Form.Control type="text" name="name" placeholder="Enter your name" required value={formData.name} onChange={handleChange}></Form.Control>
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
-            <Form.Control value={formData.email} onChange={handleChange} type="email" name="email" placeholder="Enter your email" required></Form.Control>
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Password</Form.Label>
-            <Form.Control value={formData.password} onChange={handleChange} type="password" name="password" placeholder="Enter your passwod" required></Form.Control>
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Status</Form.Label>
-            <Form.Select name="status" value={formData.status} onChange={handleChange}>
-              <option value="">Select One</option>
-              <option value="Active">Publish</option>
-              <option value="In Active">Draft</option>
-            </Form.Select>
-          </Form.Group>
-        </Form> */}
       </AppModal>
     </>
   );
