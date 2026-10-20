@@ -1,4 +1,5 @@
-import { Home, FileArchive, File, Settings, User2, Users, ChevronUp, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Home, FileArchive, File, Settings, User2, Users, ChevronUp, LogOut, ShoppingBasket } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -8,14 +9,15 @@ const handleLogout = () => {
   localStorage.removeItem("token");
   window.location.href = "/login";
 };
+
 // Menu navigasi utama
 const items = [
   { title: "Home", url: "#", icon: Home },
+  { title: "Order", url: "/transaction", icon: ShoppingBasket },
   { title: "Product", url: "/product", icon: FileArchive },
   { title: "Category", url: "/category", icon: File },
   { title: "User", url: "/user", icon: Users },
   { title: "Settings", url: "#", icon: Settings },
-  { title: "Logout", url: "#", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -40,7 +42,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title}>
+                  <SidebarMenuButton tooltip={item.title} render={<Link to={item.url} />}>
                     <item.icon />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
@@ -56,14 +58,16 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              {/* Trigger tetap membungkus, tetapi child diubah agar tidak merender <button> */}
+              <DropdownMenuTrigger className="w-full focus:outline-none">
+                <SidebarMenuButton size="lg" render={<div />} /* Mengubah tombol sidebar menjadi <div> */ className="cursor-pointer data-[state=open]:bg-sidebar-accent">
                   <User2 />
                   <span className="font-medium">John Doe</span>
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
+
+              <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width] min-w-48">
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Logout</span>
