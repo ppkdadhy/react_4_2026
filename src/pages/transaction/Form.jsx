@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Label } from "../../../components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,17 +8,9 @@ import api from "@/services/api";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CardFooter } from "react-bootstrap";
 const FormTransaction = () => {
-  const _initForm = {
-    id: null,
-    name: "",
-    email: "",
-    password: "",
-    is_active: 1,
-  };
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
-  const [formData, setFormData] = useState(_initForm);
-  const [isEdit, setIsEdit] = useState(false);
   const [cart, setCart] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [cashAmount, setCashAmount] = useState("");
@@ -37,16 +30,27 @@ const FormTransaction = () => {
     fetchProducts();
   }, []);
 
+  // const addToCart = (product) => {
+  //   setCart((prev) => {
+  //     const ext = prev.find((item) => item.id === product.id);
+  //     if (ext) {
+  //       if (ext.qty >= product.stock) return prev;
+  //       return prev.map((item) => {
+  //         return item.id === product.id ? { ...item, qty: item.qty + 1 } : item;
+  //       });
+  //     }
+
+  //     return [...prev, { ...product, qty: 1 }];
+  //   });
+  // };
+
   const addToCart = (product) => {
     setCart((prev) => {
-      const ext = prev.find((item) => item.id === product.id);
-      if (ext) {
-        if (ext.qty >= product.stock) return prev;
-        return prev.map((item) => {
-          return item.id === product.id ? { ...item, qty: item.qty + 1 } : item;
-        });
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        if (existing.qty >= product.stock) return prev;
+        return prev.map((item) => (item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
       }
-
       return [...prev, { ...product, qty: 1 }];
     });
   };
@@ -55,75 +59,79 @@ const FormTransaction = () => {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const updateQty = (id, qty) => {
-    let nextQty = "";
-    setCart((prev) => {
-      return prev
+  // const updateQty = (id, qty) => {
+  //   let nextQty = "";
+  //   setCart((prev) => {
+  //     return prev
+  //       .map((item) => {
+  //         if (item.id === id) {
+  //           nextQty = item.qty + qty;
+  //           return nextQty > 0 && nextQty <= item.stock ? { ...item, qty: nextQty } : item;
+  //         }
+  //         return item;
+  //       })
+  //       .filter((item) => item.qty > 0);
+  //   });
+  // };
+
+  const updateQty = (id, delta) => {
+    setCart((prev) =>
+      prev
         .map((item) => {
           if (item.id === id) {
-            nextQty = item.qty + qty;
+            const nextQty = item.qty + delta;
             return nextQty > 0 && nextQty <= item.stock ? { ...item, qty: nextQty } : item;
           }
           return item;
         })
-        .filter((item) => item.qty > 0);
-    });
+        .filter((item) => item.qty > 0),
+    );
   };
 
-  console.log("cart", cart);
+  const TAX_RATE = 0.1;
+  const totalAmount = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const tax = Math.round(totalAmount * TAX_RATE);
+  const total = totalAmount + tax;
+  const change = Number(cashAmount) - total;
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleCheckout = async () => {
     try {
+      setLoading(true);
       const payload = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        is_active: parseInt(formData.is_active),
+        order_number: Date.now(),
+        payment_method: paymentMethod === "cash" ? 2 : 1,
+        items: cart.map((item) => ({
+          product_id: item.id,
+          qty: item.qty,
+          price: item.price,
+        })),
+        subtotal: totalAmount,
+        pay: cashAmount,
+        tax: tax,
+        total: total,
       };
-      if (isEdit) {
-        // update data
-        await api.put(`/user/${formData.id}`, payload);
-        // setTransactions(transactions.map((user) => (user.id === formData.id ? formData : user)));
-      } else {
-        // insert data
-        await api.post("/user", payload);
-        // const newUser = {
-        //   ...formData,
-        //   id: Date.now(),
-        // };
 
-        // setTransactions([...transactions, newUser]);
+
+
+      const response = await api.post("/transaction", payload);
+
+      if (!response.status) {
+        alert(response.message || "Failed process transaction");
+        return;
       }
-      setFormData(_initForm);
+
+      if (paymentMethod === "qris" && response.payment_gateway?.redirect_url) {
+        window.location.href = response.payment_gateway.redirect_url;
+        return;
+      }
+
+      navigate("/transaction/print");
     } catch (error) {
-      const errMsg = error.message;
-      console.log(errMsg);
+      console.log("error transaction order", error);
     } finally {
-      fetchTransaction();
-      setShowModal(false);
+      setLoading(false);
     }
-    // jika edit data
   };
-
-  const handleDelete = async (id) => {
-    const confirmation = window.confirm("Are you sure want to delete this data?");
-    if (confirmation) {
-      // delete
-      await api.delete(`/user/${id}`);
-      fetchTransaction();
-      // setTransactions(transactions.filter((u) => u.id !== id));
-    }
-    // filter: transactions
-  };
-
   return (
     <>
       <div className="grid grid-col-1 lg:grid-cols-12 gap-6 items-start">
@@ -207,17 +215,27 @@ const FormTransaction = () => {
               )}
               <div className="space-y-1.5 pt-3 border-t text-xs">
                 <div className="flex justify-between font-semibold text-sm">
+                  <span>Subtotal</span>
+                  <span>{Number(totalAmount).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-sm">
+                  <span>Tax (10%)</span>
+                  <span>{Number(tax).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-sm">
                   <span>Total</span>
-                  <span>Rp.100.000</span>
+                  <span>{Number(total).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Change</span>
-                  <span>Rp.100.000</span>
+                  <span>{Number(change).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</span>
                 </div>
               </div>
             </CardContent>
             <CardFooter className="p-4 border-t">
-              <Button className="w-full text-xs font-semibold">{loading ? "Loading..." : "Save Transaction"}</Button>
+              <Button onClick={handleCheckout} className="w-full text-xs font-semibold">
+                {loading ? "Loading..." : "Save Transaction"}
+              </Button>
             </CardFooter>
           </Card>
         </div>
