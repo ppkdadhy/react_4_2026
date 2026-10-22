@@ -111,7 +111,7 @@ const FormTransaction = () => {
         total: total,
       };
 
-
+      console.log(payload);
 
       const response = await api.post("/transaction", payload);
 
